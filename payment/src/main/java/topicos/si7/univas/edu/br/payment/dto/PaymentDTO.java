@@ -26,18 +26,13 @@ public class PaymentDTO {
 	
 	@NotNull(message = "Value can not be null.")
 	@Positive(message = "Value must not be negative.")
-	private float value;
-	
-	private int transactionId;
-	
-	private String paidAt;
+	private float paymentValue;
+
 	
 	public PaymentDTO(PaymentEntity payment) {
 		this.id = payment.getId();
 		this.method = payment.getMethod();
-		this.value = payment.getValue();
+		this.paymentValue = payment.getPaymentValue();
 		this.dueDate = payment.getDueDate();
-		this.transactionId = payment.getTransactionId();
-		this.paidAt = payment.getPaidAt();
 	}
 }

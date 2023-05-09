@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import topicos.si7.univas.edu.br.payment.dto.PaymentDTO;
+import topicos.si7.univas.edu.br.payment.dto.PaymentDTOFind;
 import topicos.si7.univas.edu.br.payment.entities.PaymentEntity;
 import topicos.si7.univas.edu.br.payment.repository.PaymentRepository;
 
@@ -20,8 +21,8 @@ public class PaymentService {
 		this.repo = repo;
 	}
 	
-	public List<PaymentDTO> findAll() {
-		return repo.findAll().stream().map(p -> new PaymentDTO(p)).collect(Collectors.toList());
+	public List<PaymentDTOFind> findAll() {
+		return repo.findAll().stream().map(p -> new PaymentDTOFind(p)).collect(Collectors.toList());
 	}
 	
 	public void createPayment(PaymentDTO payment) {
@@ -29,7 +30,7 @@ public class PaymentService {
 	}
 
 	public PaymentEntity toEntity(PaymentDTO payment) {
-		return new PaymentEntity(payment.getMethod(), payment.getDueDate(), payment.getValue());
+		return new PaymentEntity(payment.getMethod(), payment.getDueDate(), payment.getPaymentValue());
 	}
 	
 	
