@@ -13,8 +13,8 @@ import topicos.si7.univas.edu.br.payment.entities.PaymentEntity;
 @NoArgsConstructor
 public class PaymentDTO {
 	
-	@NotNull(message = "Id can not be null.")
-	@Positive(message = "Id must not be negative.")
+//	@NotNull(message = "Id can not be null.")
+//	@Positive(message = "Id must not be negative.")
 	private Integer id;
 	
 	@NotNull(message = "Method can not be null.")
@@ -30,7 +30,7 @@ public class PaymentDTO {
 
 	
 	public PaymentDTO(PaymentEntity payment) {
-		this.id = payment.getId();
+//		this.id = payment.getId();
 		this.method = payment.getMethod();
 		this.paymentValue = payment.getPaymentValue();
 		this.dueDate = payment.getDueDate();

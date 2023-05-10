@@ -18,6 +18,7 @@ public class PaymentDTOFind {
 	
 	public PaymentDTOFind(PaymentEntity p) {
 		super();
+		this.id = p.getId();
 		this.method = p.getMethod();
 		this.dueDate = p.getDueDate();
 		this.paymentValue = p.getPaymentValue();
