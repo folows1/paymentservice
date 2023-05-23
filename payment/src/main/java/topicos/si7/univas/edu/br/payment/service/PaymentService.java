@@ -14,6 +14,7 @@ import topicos.si7.univas.edu.br.payment.entities.PaymentEntity;
 import topicos.si7.univas.edu.br.payment.enums.Status;
 import topicos.si7.univas.edu.br.payment.enums.TransactionDTO;
 import topicos.si7.univas.edu.br.payment.repository.PaymentRepository;
+import topicos.si7.univas.edu.br.payment.support.ObjectNotFound;
 
 @Service
 public class PaymentService {
@@ -31,7 +32,7 @@ public class PaymentService {
 	
 	public PaymentEntity findById(int id) {
 		Optional<PaymentEntity> obj = repo.findById(id);
-		PaymentEntity payment = obj.orElseThrow(() -> new RuntimeException("Payment not found - " +id));
+		PaymentEntity payment = obj.orElseThrow(() -> new ObjectNotFound("Payment not found - " +id));
 		
 		return payment;
 	}
@@ -46,7 +47,7 @@ public class PaymentService {
 	
 	public void pay (TransactionDTO ts, int id) {
 		Optional<PaymentEntity> obj = repo.findById(id);
-		PaymentEntity payment = obj.orElseThrow(() -> new RuntimeException("Payment not found - " +id));
+		PaymentEntity payment = obj.orElseThrow(() -> new ObjectNotFound("Payment not found - " +id));
 		payment.setTransactionId(ts.getTransactionId());
 		payment.setPaidAt(LocalDateTime.now());
 		payment.setStatus(Status.PAID);
@@ -55,7 +56,7 @@ public class PaymentService {
 	
 	public void cancel (int id) {
 		Optional<PaymentEntity> obj = repo.findById(id);
-		PaymentEntity payment = obj.orElseThrow(() -> new RuntimeException("Payment not found - " +id));
+		PaymentEntity payment = obj.orElseThrow(() -> new ObjectNotFound("Payment not found - " +id));
 		payment.setStatus(Status.CANCELED);
 		payment.setPaidAt(null);
 		payment.setTransactionId(0);
