@@ -15,6 +15,7 @@ import topicos.si7.univas.edu.br.payment.enums.Status;
 import topicos.si7.univas.edu.br.payment.enums.TransactionDTO;
 import topicos.si7.univas.edu.br.payment.repository.PaymentRepository;
 import topicos.si7.univas.edu.br.payment.support.ObjectNotFound;
+import topicos.si7.univas.edu.br.payment.support.PaymentException;
 
 @Service
 public class PaymentService {
@@ -48,6 +49,9 @@ public class PaymentService {
 	public void pay (TransactionDTO ts, int id) {
 		Optional<PaymentEntity> obj = repo.findById(id);
 		PaymentEntity payment = obj.orElseThrow(() -> new ObjectNotFound("Payment not found - " +id));
+		if (payment.getStatus() != Status.PENDING) {
+			throw new PaymentException("Payment already finished.");
+		}
 		payment.setTransactionId(ts.getTransactionId());
 		payment.setPaidAt(LocalDateTime.now());
 		payment.setStatus(Status.PAID);
@@ -57,6 +61,10 @@ public class PaymentService {
 	public void cancel (int id) {
 		Optional<PaymentEntity> obj = repo.findById(id);
 		PaymentEntity payment = obj.orElseThrow(() -> new ObjectNotFound("Payment not found - " +id));
+		
+		if (payment.getStatus() != Status.PENDING) {
+			throw new PaymentException("Payment already finished.");
+		}
 		payment.setStatus(Status.CANCELED);
 		payment.setPaidAt(null);
 		payment.setTransactionId(0);
@@ -65,10 +73,13 @@ public class PaymentService {
 	
 	public void updatePayment (PaymentEntity payment, Integer id) {
 		if (id == null || payment == null) {
-			throw new RuntimeException("Invalid id.");
+			throw new PaymentException("Invalid id.");
 		}
 		
 		PaymentEntity ent = findById(id);
+		if (ent.getStatus() != Status.PENDING) {
+			throw new PaymentException("Payment already finished.");
+		}
 		updateData(ent, payment);
 		repo.save(ent);
 	}
