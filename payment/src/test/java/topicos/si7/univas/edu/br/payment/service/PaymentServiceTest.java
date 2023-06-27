@@ -12,6 +12,7 @@ import topicos.si7.univas.edu.br.payment.enums.Status;
 import topicos.si7.univas.edu.br.payment.enums.TransactionDTO;
 import topicos.si7.univas.edu.br.payment.repository.PaymentRepository;
 import topicos.si7.univas.edu.br.payment.support.ObjectNotFound;
+import topicos.si7.univas.edu.br.payment.support.PaymentException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class PaymentServiceTest {
     @Test
     public void testCreatePayment() {
         // Mocking the input DTO and repository save method
-    	PaymentEntity paymentEntity = new PaymentEntity("Method1", new Date(), 100);
+        PaymentEntity paymentEntity = new PaymentEntity("Method1", new Date(), 100);
         PaymentDTO paymentDTO = new PaymentDTO(paymentEntity);
         when(repo.save(any())).thenReturn(new PaymentEntity());
 
@@ -85,6 +86,18 @@ public class PaymentServiceTest {
         // Verifying that the repository method was called
         verify(repo, times(1)).findById(1);
     }
+    
+    @Test
+    public void testUpdatePayment_InvalidId_ThrowsPaymentException() {
+        // Calling the service method with null id and null payment and verifying the exception
+        PaymentException exception = assertThrows(PaymentException.class, () -> service.updatePayment(null, null));
+        assertEquals("Invalid id.", exception.getMessage());
+
+        // Verifying that the repository findById method was not called
+        verify(repo, never()).findById(anyInt());
+        // Verifying that the repository save method was not called
+        verify(repo, never()).save(any());
+    }
 
     @Test
     public void testFindById_InvalidId_ThrowsObjectNotFound() {
@@ -92,7 +105,8 @@ public class PaymentServiceTest {
         when(repo.findById(1)).thenReturn(Optional.empty());
 
         // Calling the service method and verifying the exception
-        assertThrows(ObjectNotFound.class, () -> service.findById(1));
+        ObjectNotFound exception = assertThrows(ObjectNotFound.class, () -> service.findById(1));
+        assertEquals("Payment not found - 1", exception.getMessage());
 
         // Verifying that the repository method was called
         verify(repo, times(1)).findById(1);
@@ -118,6 +132,24 @@ public class PaymentServiceTest {
         assertEquals(Status.CANCELED, paymentEntity.getStatus());
         assertNull(paymentEntity.getPaidAt());
         assertEquals(0, paymentEntity.getTransactionId());
+    }
+
+    @Test
+    public void testCancel_NonPendingPayment_ThrowsPaymentException() {
+        // Mocking the repository response
+        PaymentEntity paymentEntity = new PaymentEntity("Method1", new Date(), 100);
+        paymentEntity.setStatus(Status.PAID);
+        Optional<PaymentEntity> optionalPayment = Optional.of(paymentEntity);
+        when(repo.findById(1)).thenReturn(optionalPayment);
+
+        // Calling the service method and verifying the exception
+        PaymentException exception = assertThrows(PaymentException.class, () -> service.cancel(1));
+        assertEquals("Payment already finished.", exception.getMessage());
+
+        // Verifying that the repository findById method was called
+        verify(repo, times(1)).findById(1);
+        // Verifying that the repository save method was not called
+        verify(repo, never()).save(any());
     }
 
     @Test
@@ -147,6 +179,28 @@ public class PaymentServiceTest {
     }
 
     @Test
+    public void testPay_NonPendingPayment_ThrowsPaymentException() {
+        // Mocking the repository response
+        PaymentEntity paymentEntity = new PaymentEntity("Method1", new Date(), 100);
+        paymentEntity.setStatus(Status.PAID);
+        Optional<PaymentEntity> optionalPayment = Optional.of(paymentEntity);
+        when(repo.findById(1)).thenReturn(optionalPayment);
+
+        // Creating a TransactionDTO
+        TransactionDTO transactionDTO = new TransactionDTO();
+        transactionDTO.setTransactionId(123456);
+
+        // Calling the service method and verifying the exception
+        PaymentException exception = assertThrows(PaymentException.class, () -> service.pay(transactionDTO, 1));
+        assertEquals("Payment already finished.", exception.getMessage());
+
+        // Verifying that the repository findById method was called
+        verify(repo, times(1)).findById(1);
+        // Verifying that the repository save method was not called
+        verify(repo, never()).save(any());
+    }
+
+    @Test
     public void testUpdatePayment_PendingPayment_UpdatesPayment() {
         // Mocking the repository response
         PaymentEntity existingPayment = new PaymentEntity("Method1", new Date(), 100);
@@ -171,5 +225,28 @@ public class PaymentServiceTest {
         assertEquals("Method2", existingPayment.getMethod());
         assertEquals(updatedPayment.getDueDate(), existingPayment.getDueDate());
         assertEquals(updatedPayment.getPaymentValue(), existingPayment.getPaymentValue());
+    }
+
+    @Test
+    public void testUpdatePayment_NonPendingPayment_ThrowsPaymentException() {
+        // Mocking the repository response
+        PaymentEntity existingPayment = new PaymentEntity("Method1", new Date(), 100);
+        existingPayment.setId(1);
+        existingPayment.setStatus(Status.PAID);
+        Optional<PaymentEntity> optionalPayment = Optional.of(existingPayment);
+        when(repo.findById(1)).thenReturn(optionalPayment);
+
+        // Creating a new PaymentEntity with updated values
+        PaymentEntity updatedPayment = new PaymentEntity("Method2", new Date(), 200);
+        updatedPayment.setId(1);
+
+        // Calling the service method and verifying the exception
+        PaymentException exception = assertThrows(PaymentException.class, () -> service.updatePayment(updatedPayment, 1));
+        assertEquals("Payment already finished.", exception.getMessage());
+
+        // Verifying that the repository findById method was called
+        verify(repo, times(1)).findById(1);
+        // Verifying that the repository save method was not called
+        verify(repo, never()).save(any());
     }
 }
